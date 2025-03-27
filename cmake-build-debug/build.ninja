@@ -61,6 +61,18 @@ build CMakeFiles/2.dir/memory/stats.c.o: C_COMPILER__2_unscanned_Debug /Users/ma
   OBJECT_DIR = CMakeFiles/2.dir
   OBJECT_FILE_DIR = CMakeFiles/2.dir/memory
 
+build CMakeFiles/2.dir/application/domain/models.c.o: C_COMPILER__2_unscanned_Debug /Users/makaasz/Проекты/С/Лабы/Структуры$ данных/2/application/domain/models.c || cmake_object_order_depends_target_2
+  DEP_FILE = CMakeFiles/2.dir/application/domain/models.c.o.d
+  FLAGS = -g -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/2.dir
+  OBJECT_FILE_DIR = CMakeFiles/2.dir/application/domain
+
+build CMakeFiles/2.dir/application/operations.c.o: C_COMPILER__2_unscanned_Debug /Users/makaasz/Проекты/С/Лабы/Структуры$ данных/2/application/operations.c || cmake_object_order_depends_target_2
+  DEP_FILE = CMakeFiles/2.dir/application/operations.c.o.d
+  FLAGS = -g -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/2.dir
+  OBJECT_FILE_DIR = CMakeFiles/2.dir/application
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target 2
@@ -69,7 +81,7 @@ build CMakeFiles/2.dir/memory/stats.c.o: C_COMPILER__2_unscanned_Debug /Users/ma
 #############################################
 # Link the executable 2
 
-build 2: C_EXECUTABLE_LINKER__2_Debug CMakeFiles/2.dir/main.c.o CMakeFiles/2.dir/memory/stats.c.o
+build 2: C_EXECUTABLE_LINKER__2_Debug CMakeFiles/2.dir/main.c.o CMakeFiles/2.dir/memory/stats.c.o CMakeFiles/2.dir/application/domain/models.c.o CMakeFiles/2.dir/application/operations.c.o
   FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk
   OBJECT_DIR = CMakeFiles/2.dir
   POST_BUILD = :
