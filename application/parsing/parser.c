@@ -124,57 +124,58 @@ void skip_spaces(ParserState* state) {
 ParsedExpression* parse_operand(ParserState* state);
 ParsedExpression* parse_unary(ParserState* state);
 ParsedExpression* parse_parentheses(ParserState* state);
-ParsedExpression* recursive_parse_expression(ParserState* state, int min_priority);
+ParsedExpression* recursive_parse_expression(ParserState* state, int min_priority, int except_operand);
+
+int is_unary_context(ParserState* state) {
+    if (state->position == 0) return 1;
+
+    char prev = state->expression[state->position - 1];
+    return (prev == '(' || prev == '+' || prev == '-' || prev == '*' ||
+            prev == '/' || prev == '%' || prev == '^' || prev == ' ');
+}
 
 ParsedExpression* parse_operand(ParserState* state) {
     skip_spaces(state);
-    if (!isdigit(state->expression[state->position]) && !isalpha(state->expression[state->position]))
-        return NULL;
+
+    int sign = 1;
+    if (state->expression[state->position] == '-' && isdigit(state->expression[state->position + 1])) {
+        sign = -1;
+        state->position++;
+    }
 
     int start = state->position;
-    while (isdigit(state->expression[state->position]) || isalpha(state->expression[state->position]))
+    while (isalnum(state->expression[state->position]))
         state->position++;
 
-    char* operand = track_strndup(state->expression + start, state->position - start);
-    if (operand == NULL)
-        return NULL;
+    if (start == state->position) return NULL;
 
-    ParsedExpression* node = create_operand_node(operand);
-    if (node != NULL)
-        return node;
+    char* operand = track_strndup(state->expression + start - (sign == -1),
+                                state->position - start + (sign == -1));
 
-    track_free(operand);
-    return NULL;
+    return create_operand_node(operand);
 }
 
 ParsedExpression* parse_unary(ParserState* state) {
     skip_spaces(state);
 
     char op = state->expression[state->position];
-    if (op != '-' && op != '~')
-        return parse_operand(state);
+    if (strchr("+-~", op) && is_unary_context(state)) {
+        state->position++;
+        ParsedExpression* operand = parse_unary(state);
+        return operand ? create_operator_node(op, operand, NULL) : NULL;
+    }
 
-    state->position++;
-
-    skip_spaces(state);
-    if (state->expression[state->position] == ')')
-        return NULL;
-
-    ParsedExpression* operand = parse_unary(state);
-    if (operand == NULL)
-        return NULL;
-
-    return create_operator_node(op, operand, NULL);
+    return parse_parentheses(state);
 }
 
 ParsedExpression* parse_parentheses(ParserState* state) {
     skip_spaces(state);
 
     if (state->expression[state->position] != '(')
-        return parse_unary(state);
+        return parse_operand(state);
 
     state->position++;
-    ParsedExpression* expr = recursive_parse_expression(state, 0);
+    ParsedExpression* expr = recursive_parse_expression(state, 0, 1);
 
     skip_spaces(state);
     if (state->expression[state->position] != ')') {
@@ -186,43 +187,68 @@ ParsedExpression* parse_parentheses(ParserState* state) {
     return expr;
 }
 
-int get_operator_priority(char op) {
-    switch (op) {
+int get_operator_priority(char op, int is_unary) {
+    if (is_unary) {
+        switch(op) {
+            case '-': case '~': return 5;
+            default: return -1;
+        }
+    }
+
+    switch(op) {
         case '+': case '-': return 1;
         case '*': case '/': case '%': return 2;
         case '^': return 3;
-        case '~': return 4;
         default: return -1;
     }
 }
 
-ParsedExpression* recursive_parse_expression(ParserState* state, int min_priority) {
-    ParsedExpression* left = parse_parentheses(state);
-    if (left == NULL) return NULL;
+ParsedExpression* recursive_parse_expression(ParserState* state, int min_priority, int expect_operand) {
+    ParsedExpression* left;
+
+    if (expect_operand)
+        left = parse_unary(state);
+
+    else left = parse_parentheses(state);
+
+    if (left == NULL)
+        return NULL;
 
     while (1) {
         skip_spaces(state);
         char op = state->expression[state->position];
-        int priority = get_operator_priority(op);
+        if (op == '\0') break;
 
+        int is_unary = 0;
+        if (expect_operand && strchr("+-~", op) && is_unary_context(state))
+            is_unary = 1;
+
+        int priority = get_operator_priority(op, is_unary);
         if (priority < min_priority) break;
 
         state->position++;
-        ParsedExpression* right = recursive_parse_expression(state, priority + 1);
+
+        ParsedExpression* right;
+        if (is_unary)
+            right = recursive_parse_expression(state, priority + 1, 1);
+
+        else right = recursive_parse_expression(state, priority + 1, 1);
+
         if (right == NULL) {
             free_expression_tree(left);
             return NULL;
         }
 
-        left = create_operator_node(op, left, right);
+        left = create_operator_node(op, left, is_unary ? NULL : right);
     }
 
     return left;
 }
 
 ParsedExpression* parse_expression(const char* expression) {
-    ParserState state = { 0, expression };
-    ParsedExpression* result = recursive_parse_expression(&state, 0);
+    ParserState state = {0, expression};
+    ParsedExpression* result = recursive_parse_expression(&state, 0, 1);
+
     if (result == NULL)
         return NULL;
 
