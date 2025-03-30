@@ -1,16 +1,19 @@
 #ifndef MODELS_H
 #define MODELS_H
 
-#define MAX_EXPRESSION_LENGTH 256
+typedef struct {
+    union {
+        char variable;
+        int number;
+    };
+
+    int is_positive;
+    int is_variable;
+} Operand;
 
 typedef struct ExpressionNode {
     char c_operator;
-    int is_variable;
-    union {
-        int number;
-        char variable;
-    } data;
-
+    Operand* operand;
     struct ExpressionNode *left, *right;
 } ExpressionNode;
 
