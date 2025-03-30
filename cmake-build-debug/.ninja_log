@@ -1,6 +1,0 @@
-# ninja log v6
-1	133	1743107122649772723	CMakeFiles/2.dir/main.c.o	184a96ed874de292
-2	134	1743107122650558348	CMakeFiles/2.dir/memory/stats.c.o	8019da35a5289169
-2	134	1743107122650807723	CMakeFiles/2.dir/application/operations.c.o	8db6c92a8ca7e62f
-2	134	1743107122650697973	CMakeFiles/2.dir/application/domain/models.c.o	dd08b5b693cf6221
-134	219	1743107122783068233	2	e85571ff28f61c8d
