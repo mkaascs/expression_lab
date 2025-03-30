@@ -11,7 +11,7 @@
 
 #define MAX_EXPRESSION_LENGTH 256
 
-void write_line(char* line) {
+void write_line(const char* line) {
     FILE* file = fopen(OUTPUT_FILENAME, "a");
     fprintf(file, "%s\n", line);
     fclose(file);
@@ -35,6 +35,7 @@ int main(void) {
         if (strlen(command) == 0)
             continue;
 
+        command[strcspn(command, "\n")] = '\0';
         execute_command(command, write_line);
     }
 
