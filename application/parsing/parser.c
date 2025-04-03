@@ -104,11 +104,11 @@ ParsedExpression* create_operator_node(char operator, ParsedExpression* left, Pa
     return node;
 }
 
-void free_expression_tree(ParsedExpression* node) {
+void free_parsed_tree(ParsedExpression* node) {
     if (node == NULL) return;
 
-    free_expression_tree(node->left);
-    free_expression_tree(node->right);
+    free_parsed_tree(node->left);
+    free_parsed_tree(node->right);
 
     if (node->operand)
         track_free(node->operand);
@@ -179,7 +179,7 @@ ParsedExpression* parse_parentheses(ParserState* state) {
 
     skip_spaces(state);
     if (state->expression[state->position] != ')') {
-        free_expression_tree(expr);
+        free_parsed_tree(expr);
         return NULL;
     }
 
@@ -235,7 +235,7 @@ ParsedExpression* recursive_parse_expression(ParserState* state, int min_priorit
         else right = recursive_parse_expression(state, priority + 1, 1);
 
         if (right == NULL) {
-            free_expression_tree(left);
+            free_parsed_tree(left);
             return NULL;
         }
 
@@ -254,9 +254,13 @@ ParsedExpression* parse_expression(const char* expression) {
 
     skip_spaces(&state);
     if (state.expression[state.position] != '\0') {
-        free_expression_tree(result);
+        free_parsed_tree(result);
         return NULL;
     }
 
     return result;
+}
+
+ParsedEvalCommand* parse_eval_arguments(const char* arguments) {
+    return 0;
 }

@@ -3,15 +3,6 @@
 #include "models.h"
 #include "../../memory/stats.h"
 
-void init_tree(ExpressionNode* tree) {
-    if (tree == NULL)
-        return;
-
-    tree->c_operator = '\0';
-    tree->operand = NULL;
-    tree->left = tree->right = NULL;
-}
-
 void free_tree(ExpressionNode* tree) {
     if (tree == NULL)
         return;
