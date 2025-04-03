@@ -150,10 +150,16 @@ void skip_spaces(ParserState* state) {
         state->position++;
 }
 
+void skip_spaces_postfix(ParserState* state) {
+    while (state->position >= 0 && isspace(state->expression[state->position]))
+        state->position--;
+}
+
 ParsedExpression* parse_operand(ParserState* state);
 ParsedExpression* parse_unary(ParserState* state);
 ParsedExpression* parse_parentheses(ParserState* state);
 ParsedExpression* recursive_parse_expression(ParserState* state, int min_priority, int except_operand);
+ParsedExpression* recursive_parse_prefix(ParserState* state);
 
 int is_unary_context(const ParserState* state) {
     if (state->position == 0) return 1;
@@ -277,6 +283,73 @@ ParsedExpression* recursive_parse_expression(ParserState* state, int min_priorit
 ParsedExpression* parse_expression(const char* expression) {
     ParserState state = {0, expression};
     ParsedExpression* result = recursive_parse_expression(&state, 0, 1);
+
+    if (result == NULL)
+        return NULL;
+
+    skip_spaces(&state);
+    if (state.expression[state.position] != '\0') {
+        free_parsed_tree(result);
+        return NULL;
+    }
+
+    return result;
+}
+
+ParsedExpression* recursive_parse_prefix(ParserState* state) {
+    if (state->position >= strlen(state->expression))
+        return NULL;
+
+    if (strchr("+-*/%^~", state->expression[state->position])) {
+        char c_operator = state->expression[state->position];
+        state->position++;
+
+        if (state->expression[state->position] != '(')
+            return NULL;
+
+        state->position++;
+
+        ParsedExpression* left = recursive_parse_prefix(state);
+        if (left == NULL)
+            return NULL;
+
+        ParsedExpression* right = NULL;
+        if (state->expression[state->position] == ',') {
+            state->position++;
+            right = recursive_parse_prefix(state);
+            if (right == NULL) {
+                free_parsed_tree(left);
+                return NULL;
+            }
+        }
+
+        if (state->expression[state->position] != ')') {
+            free_parsed_tree(left);
+            if (right != NULL)
+                free_parsed_tree(right);
+
+            return NULL;
+        }
+
+        state->position++;
+
+        return create_operator_node(c_operator, left, right);
+    }
+
+    int start = state->position;
+    while (isalnum(state->expression[state->position]))
+        state->position++;
+
+    if (start == state->position)
+        return NULL;
+
+    char* operand = track_strndup(state->expression + start, state->position - start);
+    return create_operand_node(operand);
+}
+
+ParsedExpression* parse_prefix_expression(const char* expression) {
+    ParserState state = {0, expression};
+    ParsedExpression* result = recursive_parse_prefix(&state);
 
     if (result == NULL)
         return NULL;

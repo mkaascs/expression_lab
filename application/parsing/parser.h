@@ -29,7 +29,11 @@ typedef struct ParsedExpression {
 
 int parse_command(const char*, ParsedCommand*);
 int parse_eval_arguments(const char*, ParsedEvalCommand*);
+
 ParsedExpression* parse_expression(const char*);
+ParsedExpression* parse_prefix_expression(const char*);
+ParsedExpression* parse_postfix_expression(const char*);
+
 void free_parsed_tree(ParsedExpression*);
 
 #endif //PARSER_H

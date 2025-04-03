@@ -117,6 +117,46 @@ int save_postfix(void (*presenter)(const char*)) {
     return 1;
 }
 
+int load_prefix(ParsedCommand command, void (*presenter)(const char*)) {
+    ParsedExpression* parsed = parse_prefix_expression(command.arguments);
+    if (parsed == NULL) {
+        presenter("incorrect\n");
+        return 0;
+    }
+
+    if (currentExpression != NULL) {
+        free_tree(currentExpression);
+        currentExpression = NULL;
+    }
+
+    currentExpression = (ExpressionNode*)track_malloc(sizeof(ExpressionNode));
+    convert_to_entity(parsed, currentExpression);
+
+    presenter("success\n");
+    free_parsed_tree(parsed);
+    return 1;
+}
+
+int load_postfix(ParsedCommand command, void (*presenter)(const char*)) {
+    ParsedExpression* parsed = parse_postfix_expression(command.arguments);
+    if (parsed == NULL) {
+        presenter("incorrect\n");
+        return 0;
+    }
+
+    if (currentExpression != NULL) {
+        free_tree(currentExpression);
+        currentExpression = NULL;
+    }
+
+    currentExpression = (ExpressionNode*)track_malloc(sizeof(ExpressionNode));
+    convert_to_entity(parsed, currentExpression);
+
+    presenter("success\n");
+    free_parsed_tree(parsed);
+    return 1;
+}
+
 typedef enum {
     EvalOK, NoVarValues, MathError, InvalidNode, UnknownOperator
 } EvalError;
@@ -275,6 +315,12 @@ int execute_command(const char* command, void (*presenter)(const char*)) {
 
     if (parsed_command.type == SavePostfix)
         command_result = save_postfix(presenter);
+
+    if (parsed_command.type == LoadPrefix)
+        command_result = load_prefix(parsed_command, presenter);
+
+    if (parsed_command.type == LoadPostfix)
+        command_result = load_postfix(parsed_command, presenter);
 
     if (parsed_command.type == Eval)
         command_result = eval(parsed_command, presenter);
