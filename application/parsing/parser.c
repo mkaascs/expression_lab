@@ -55,7 +55,7 @@ int get_command_type(const char* command_string, CommandType* type) {
 }
 
 int parse_command(const char* command, ParsedCommand* parsed_command) {
-    const int command_length = strlen(command);
+    const size_t command_length = strlen(command);
     char* command_copy = (char*)track_malloc(command_length + 1);
     strncpy(command_copy, command, command_length + 1);
 
@@ -75,11 +75,40 @@ int parse_command(const char* command, ParsedCommand* parsed_command) {
         return 1;
     }
 
-    const int args_length = strlen(token);
+    const size_t args_length = strlen(token);
     parsed_command->arguments = (char*)track_malloc(args_length + 1);
     strncpy(parsed_command->arguments, token, args_length + 1);
 
     track_free(command_copy);
+    return 1;
+}
+
+int parse_eval_arguments(const char* arguments, ParsedEvalCommand* parsed) {
+    const size_t arguments_length = strlen(arguments);
+    char* arguments_copy = (char*)track_malloc(arguments_length + 1);
+    strncpy(arguments_copy, arguments, arguments_length + 1);
+
+    char* save_pointer;
+    char* token = tokenize(arguments_copy, ',', &save_pointer);
+    while (token != NULL) {
+        char* equal = strchr(token, '=');
+        if (equal == NULL) {
+            track_free(arguments_copy);
+            return 0;
+        }
+
+        *equal = '\0';
+        const char variable = token[0];
+        char* number = equal + 1;
+
+        parsed->variables[parsed->variables_count] = variable;
+        parsed->values[parsed->variables_count] = atoi(number);
+        parsed->variables_count++;
+
+        token = tokenize(NULL, ',', &save_pointer);
+    }
+
+    track_free(arguments_copy);
     return 1;
 }
 
@@ -126,7 +155,7 @@ ParsedExpression* parse_unary(ParserState* state);
 ParsedExpression* parse_parentheses(ParserState* state);
 ParsedExpression* recursive_parse_expression(ParserState* state, int min_priority, int except_operand);
 
-int is_unary_context(ParserState* state) {
+int is_unary_context(const ParserState* state) {
     if (state->position == 0) return 1;
 
     char prev = state->expression[state->position - 1];
@@ -259,8 +288,4 @@ ParsedExpression* parse_expression(const char* expression) {
     }
 
     return result;
-}
-
-ParsedEvalCommand* parse_eval_arguments(const char* arguments) {
-    return 0;
 }

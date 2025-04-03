@@ -114,6 +114,21 @@ int save_postfix(void (*presenter)(const char*)) {
     return 1;
 }
 
+int eval(ParsedCommand command, void (*presenter)(const char*)) {
+    if (currentExpression == NULL)
+        return 0;
+
+    ParsedEvalCommand* parsed = (ParsedEvalCommand*)track_malloc(sizeof(ParsedEvalCommand));
+    if (!parse_eval_arguments(command.arguments, parsed)) {
+        presenter("incorrect");
+        track_free(parsed);
+        return 0;
+    }
+
+    track_free(parsed);
+    return 1;
+}
+
 int execute_command(const char* command, void (*presenter)(const char*)) {
     ParsedCommand parsed_command;
     if (!parse_command(command, &parsed_command)) {
@@ -131,6 +146,9 @@ int execute_command(const char* command, void (*presenter)(const char*)) {
 
     if (parsed_command.type == SavePostfix)
         command_result = save_postfix(presenter);
+
+    if (parsed_command.type == Eval)
+        command_result = eval(parsed_command, presenter);
 
     if (parsed_command.has_arguments)
         track_free(parsed_command.arguments);

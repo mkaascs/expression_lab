@@ -1,7 +1,9 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#define VARIABLES_COUNT 10
+#include <stdlib.h>
+
+#define MAX_VARIABLES 10
 
 typedef enum {
     Parse, LoadPrefix, LoadPostfix, SavePrefix, SavePostfix, Eval
@@ -14,9 +16,9 @@ typedef struct {
 } ParsedCommand;
 
 typedef struct {
-    char* variables[VARIABLES_COUNT];
-    char* values[VARIABLES_COUNT];
-    int variables_count;
+    char variables[MAX_VARIABLES];
+    int values[MAX_VARIABLES];
+    size_t variables_count;
 } ParsedEvalCommand;
 
 typedef struct ParsedExpression {
@@ -26,8 +28,8 @@ typedef struct ParsedExpression {
 } ParsedExpression;
 
 int parse_command(const char*, ParsedCommand*);
+int parse_eval_arguments(const char*, ParsedEvalCommand*);
 ParsedExpression* parse_expression(const char*);
-ParsedEvalCommand* parse_eval_arguments(const char*);
 void free_parsed_tree(ParsedExpression*);
 
 #endif //PARSER_H
