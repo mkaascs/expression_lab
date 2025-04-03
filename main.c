@@ -11,9 +11,9 @@
 
 #define MAX_EXPRESSION_LENGTH 256
 
-void write_line(const char* line) {
+void write_chars(const char* chars) {
     FILE* file = fopen(OUTPUT_FILENAME, "a");
-    fprintf(file, "%s\n", line);
+    fprintf(file, "%s", chars);
     fclose(file);
 }
 
@@ -36,10 +36,11 @@ int main(void) {
             continue;
 
         command[strcspn(command, "\n")] = '\0';
-        execute_command(command, write_line);
+        execute_command(command, write_chars);
     }
 
     fclose(input_file);
+    free_expression();
 
     FILE* memstat_file = fopen(MEMSTAT_FILENAME, "w");
     DataStats memstat;

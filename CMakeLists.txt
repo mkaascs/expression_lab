@@ -12,4 +12,6 @@ add_executable(2 main.c
         application/expressions.c
         application/parsing/parser.h
         application/parsing/parser.c
+        application/converting/converter.h
+        application/converting/converter.c
 )
