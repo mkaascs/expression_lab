@@ -19,10 +19,6 @@ void free_tree(ExpressionNode* tree) {
     track_free(tree);
 }
 
-void free_current_tree() {
-    free_expression();
-}
-
 int execute_command(const char* command, void (*presenter)(const char*)) {
     ParsedCommand parsed_command;
     if (!parse_command(command, &parsed_command)) {
@@ -61,6 +57,9 @@ int execute_command(const char* command, void (*presenter)(const char*)) {
         command_result = eval(parsed, presenter);
         track_free(parsed);
     }
+
+    if (parsed_command.type == Free)
+        command_result = free_expression();
 
     if (parsed_command.has_arguments)
         track_free(parsed_command.arguments);

@@ -6,7 +6,7 @@
 #define MAX_VARIABLES 10
 
 typedef enum {
-    Parse, LoadPrefix, LoadPostfix, SavePrefix, SavePostfix, Eval
+    Parse, LoadPrefix, LoadPostfix, SavePrefix, SavePostfix, Eval, Free
 } CommandType;
 
 typedef struct {

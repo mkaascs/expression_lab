@@ -5,7 +5,7 @@
 #include "parser.h"
 #include "../../memory/stats.h"
 
-#define COMMANDS_COUNT 6
+#define COMMANDS_COUNT 7
 
 typedef struct {
     int position;
@@ -13,7 +13,7 @@ typedef struct {
 } ParserState;
 
 const char* command_strings[COMMANDS_COUNT] = {
-    "parse", "load_prf", "load_pst", "save_prf", "save_pst", "eval"
+    "parse", "load_prf", "load_pst", "save_prf", "save_pst", "eval", "free"
 };
 
 char* tokenize(char* origin, const char symbol, char** save_pointer) {
@@ -363,6 +363,61 @@ ParsedExpression* parse_prefix_expression(const char* expression) {
     return result;
 }
 
+char* convert_postfix_to_prefix(const char* expression) {
+    const size_t len = strlen(expression);
+    char* result = (char*)track_malloc(len + 1);
+    int result_idx = 0;
+    int src_idx = len - 1;
+
+    while (src_idx >= 0) {
+        if (expression[src_idx] == ')') {
+            result[result_idx++] = '(';
+            src_idx--;
+        }
+
+        else if (expression[src_idx] == '(') {
+            result[result_idx++] = ')';
+            src_idx--;
+        }
+
+        else if (isalnum(expression[src_idx])) {
+            int operand_len = 0;
+            char temp[32];
+
+            while (src_idx >= 0 && isalnum(expression[src_idx]))
+                temp[operand_len++] = expression[src_idx--];
+
+            for (int i = operand_len - 1; i >= 0; i--)
+                result[result_idx++] = temp[i];
+        }
+
+        else result[result_idx++] = expression[src_idx--];
+    }
+
+    result[result_idx] = '\0';
+    return result;
+}
+
+void swap_operands(ParsedExpression* expression) {
+    if (expression == NULL)
+        return;
+
+    if (expression->left == NULL || expression->right == NULL)
+        return;
+
+    swap_operands(expression->left);
+    swap_operands(expression->right);
+
+    ParsedExpression* node = expression->left;
+    expression->left = expression->right;
+    expression->right = node;
+}
+
 ParsedExpression* parse_postfix_expression(const char* expression) {
-    return NULL;
+    char* prefix_expression = convert_postfix_to_prefix(expression);
+    ParsedExpression* result = parse_prefix_expression(prefix_expression);
+    swap_operands(result);
+
+    track_free(prefix_expression);
+    return result;
 }

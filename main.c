@@ -40,7 +40,7 @@ int main(void) {
     }
 
     fclose(input_file);
-    free_current_tree();
+    execute_command("free", write_chars);
 
     FILE* memstat_file = fopen(MEMSTAT_FILENAME, "w");
     DataStats memstat;
