@@ -17,5 +17,7 @@ typedef struct ExpressionNode {
 } ExpressionNode;
 
 void free_tree(ExpressionNode*);
+void free_current_tree();
+int execute_command(const char*, void (*)(const char*));
 
 #endif //MODELS_H

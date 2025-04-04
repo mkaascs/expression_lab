@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "application/expressions.h"
+#include "application/domain/models.h"
 #include "memory/stats.h"
 
 #define INPUT_FILENAME "input.txt"
@@ -40,7 +40,7 @@ int main(void) {
     }
 
     fclose(input_file);
-    free_expression();
+    free_current_tree();
 
     FILE* memstat_file = fopen(MEMSTAT_FILENAME, "w");
     DataStats memstat;

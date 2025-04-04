@@ -362,3 +362,7 @@ ParsedExpression* parse_prefix_expression(const char* expression) {
 
     return result;
 }
+
+ParsedExpression* parse_postfix_expression(const char* expression) {
+    return NULL;
+}

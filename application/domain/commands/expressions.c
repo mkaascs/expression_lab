@@ -2,32 +2,34 @@
 #include <stdlib.h>
 
 #include "expressions.h"
+#include "../../parsing/parser.h"
+#include "../models.h"
 
 #include <math.h>
 
-#include "converting/converter.h"
-#include "parsing/parser.h"
-#include "../memory/stats.h"
+#include "../../../memory/stats.h"
+#include "../converting/converter.h"
 
 ExpressionNode* currentExpression = NULL;
 
-int parse(ParsedCommand command, void (*presenter)(const char*)) {
-    ParsedExpression* parsed = parse_expression(command.arguments);
-    if (parsed == NULL) {
-        presenter("incorrect\n");
-        return 0;
-    }
-
+void switch_tree(const ParsedExpression* newTree) {
     if (currentExpression != NULL) {
         free_tree(currentExpression);
         currentExpression = NULL;
     }
 
     currentExpression = (ExpressionNode*)track_malloc(sizeof(ExpressionNode));
-    convert_to_entity(parsed, currentExpression);
+    convert_to_entity(newTree, currentExpression);
+}
 
+int parse(const ParsedExpression* parsed, void (*presenter)(const char*)) {
+    if (parsed == NULL) {
+        presenter("incorrect\n");
+        return 0;
+    }
+
+    switch_tree(parsed);
     presenter("success\n");
-    free_parsed_tree(parsed);
     return 1;
 }
 
@@ -117,43 +119,25 @@ int save_postfix(void (*presenter)(const char*)) {
     return 1;
 }
 
-int load_prefix(ParsedCommand command, void (*presenter)(const char*)) {
-    ParsedExpression* parsed = parse_prefix_expression(command.arguments);
+int load_prefix(const ParsedExpression* parsed, void (*presenter)(const char*)) {
     if (parsed == NULL) {
         presenter("incorrect\n");
         return 0;
     }
 
-    if (currentExpression != NULL) {
-        free_tree(currentExpression);
-        currentExpression = NULL;
-    }
-
-    currentExpression = (ExpressionNode*)track_malloc(sizeof(ExpressionNode));
-    convert_to_entity(parsed, currentExpression);
-
+    switch_tree(parsed);
     presenter("success\n");
-    free_parsed_tree(parsed);
     return 1;
 }
 
-int load_postfix(ParsedCommand command, void (*presenter)(const char*)) {
-    ParsedExpression* parsed = parse_postfix_expression(command.arguments);
+int load_postfix(const ParsedExpression* parsed, void (*presenter)(const char*)) {
     if (parsed == NULL) {
         presenter("incorrect\n");
         return 0;
     }
 
-    if (currentExpression != NULL) {
-        free_tree(currentExpression);
-        currentExpression = NULL;
-    }
-
-    currentExpression = (ExpressionNode*)track_malloc(sizeof(ExpressionNode));
-    convert_to_entity(parsed, currentExpression);
-
+    switch_tree(parsed);
     presenter("success\n");
-    free_parsed_tree(parsed);
     return 1;
 }
 
@@ -255,16 +239,9 @@ int eval_node(const ExpressionNode* node, ParsedEvalCommand parsed, EvalError* e
     }
 }
 
-int eval(ParsedCommand command, void (*presenter)(const char*)) {
-    if (currentExpression == NULL) {
-        presenter("not_loaded\n");
-        return 0;
-    }
-
-    ParsedEvalCommand* parsed = (ParsedEvalCommand*)track_malloc(sizeof(ParsedEvalCommand));
-    if (!parse_eval_arguments(command.arguments, parsed)) {
+int eval(ParsedEvalCommand* parsed, void (*presenter)(const char*)) {
+    if (parsed == NULL) {
         presenter("incorrect\n");
-        track_free(parsed);
         return 0;
     }
 
@@ -294,41 +271,7 @@ int eval(ParsedCommand command, void (*presenter)(const char*)) {
         default: ;
     }
 
-    track_free(parsed);
     return 1;
-}
-
-int execute_command(const char* command, void (*presenter)(const char*)) {
-    ParsedCommand parsed_command;
-    if (!parse_command(command, &parsed_command)) {
-        presenter("not parsed\n");
-        return -1;
-    }
-
-    int command_result = 0;
-
-    if (parsed_command.type == Parse)
-        command_result = parse(parsed_command, presenter);
-
-    if (parsed_command.type == SavePrefix)
-        command_result = save_prefix(presenter);
-
-    if (parsed_command.type == SavePostfix)
-        command_result = save_postfix(presenter);
-
-    if (parsed_command.type == LoadPrefix)
-        command_result = load_prefix(parsed_command, presenter);
-
-    if (parsed_command.type == LoadPostfix)
-        command_result = load_postfix(parsed_command, presenter);
-
-    if (parsed_command.type == Eval)
-        command_result = eval(parsed_command, presenter);
-
-    if (parsed_command.has_arguments)
-        track_free(parsed_command.arguments);
-
-    return command_result ? 0 : -1;
 }
 
 int free_expression() {

@@ -8,10 +8,10 @@ add_executable(2 main.c
         memory/stats.h
         application/domain/models.h
         application/domain/models.c
-        application/expressions.h
-        application/expressions.c
+        application/domain/commands/expressions.h
+        application/domain/commands/expressions.c
         application/parsing/parser.h
         application/parsing/parser.c
-        application/converting/converter.h
-        application/converting/converter.c
+        application/domain/converting/converter.h
+        application/domain/converting/converter.c
 )
